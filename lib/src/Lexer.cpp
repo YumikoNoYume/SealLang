@@ -54,8 +54,11 @@ namespace seal {
 			}
 		}
 
-		void Lexer::TurnToToken(std::string& to_token, const char ch, std::size_t line, std::vector<Token>& t) {
+		void Lexer::TurnToToken(std::string& to_token, const char ch, std::size_t& line, std::vector<Token>& t) {
 			if (ch == '(') {
+				if (to_token.size() > 0) {
+					Push(to_token, line, t, to_token);
+				}
 				Push("(", line, t, to_token);
 			}
 			else if (token_list.find(to_token) != token_list.end()) {
@@ -73,7 +76,10 @@ namespace seal {
 					CheckIfRBracket(ch, line, t, to_token);
 				}
 				catch (std::invalid_argument const& ex) {
-					if (to_token.empty()) { return; }
+					if (to_token.empty()) { 
+						CheckIfNewLine(ch, line, t, to_token);
+						CheckIfRBracket(ch, line, t, to_token);
+						return; }
 					if (std::isalpha(*(to_token.begin()))) {
 						Push("var", line, t, to_token);
 						CheckIfNewLine(ch, line, t, to_token);
@@ -90,10 +96,10 @@ namespace seal {
 			std::string to_token;
 			std::size_t line = 1;
 			for (auto ch : p) {
-				if (!std::isdigit(ch) && !std::isalpha(ch) && ch != ' ' && ch != '\n' && ch != '(' && ch != ')') {
+				if (!std::isdigit(ch) && !std::isalpha(ch) && ch != ' ' && ch != '\n' && ch != '(' && ch != ')' && ch != '\t') {
 					em.CollectError(Error(line, 1));
 				}
-				if (ch != ' ' && ch != '\n' && ch != '(' && ch != ')') {
+				if (ch != ' ' && ch != '\n' && ch != '(' && ch != ')' && ch != '\t') {
 					to_token.push_back(ch);
 				}
 				else {
@@ -103,7 +109,7 @@ namespace seal {
 			if (to_token.size() > 0) {
 				TurnToToken(to_token, ' ', line, t);
 			}
-			if (t.back().type != TokenType::new_line) {
+			if (t.size() == 0 || t.back().type != TokenType::new_line) {
 				CheckIfNewLine('\n', line, t, to_token);
 			}
 			if (em.GetErrorListSize() > 0) {

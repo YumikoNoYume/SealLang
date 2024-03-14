@@ -29,7 +29,7 @@ namespace seal {
 			void Push(const std::string& p, std::size_t l, std::vector<Token>& t, std::string& to_token);
 			void CheckIfNewLine(const char& to_check, std::size_t& line, std::vector<Token>& vector, std::string& token);
 			void CheckIfRBracket(const char& to_check, std::size_t line, std::vector<Token>& vector, std::string& token);
-			void TurnToToken(std::string& to_token, const char ch, std::size_t line, std::vector<Token>& t);
+			void TurnToToken(std::string& to_token, const char ch, std::size_t& line, std::vector<Token>& t);
 			std::unordered_map<std::string, std::function<TokenType()>> token_list;
 			ErrorManager em;
 		};
