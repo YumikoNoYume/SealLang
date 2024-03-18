@@ -35,17 +35,21 @@ namespace seal {
 		std::string Error::SetErrorMessage(std::size_t c) {
 			switch (c) {
 			case 1: return "Wrong lexeme input!";
-			case 2: return "Input value must be variable name!";
-			case 3: return "\"sniff\" function requires variable!"; 
+			case 2: return "Incomplete arithmetic expression!";
+			case 3: return "\"snif\" function requires variable!"; 
 			case 4: return "Input value must be logics operator!";
 			case 5: return "Input value must be variable or numeric!";
-			case 6: return "Input value must be numeric!";
+			case 6: return "Invalid statement input!";
 			case 7: return "Input value must be arithmetic operator!"; 
 			case 8: return "Excess brackets!";
 			case 9: return "Wrong expression input! Must be ended with new line!"; 
 			case 10: return "While loops' anf if statements' body must be ended with \"sneeze\"!";
 			case 11: return "Unknown variable!"; 
-			case 12: return "Brackets must contain expression";
+			case 12: return "Brackets must contain expression!";
+			case 13: return "Each statement must be written at new line!";
+			case 14: return "Invalid variable input!";
+			case 15: return "Invalid arithmetic expression input!";
+			case 16: return "While loops' anf if statements must contain body!";
 			}
 		}
 	}
