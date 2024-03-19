@@ -32,6 +32,10 @@ namespace seal {
 			message.append(std::to_string(line));
 		}
 
+		void ErrorManager::Clear() {
+			error_list.clear();
+		}
+
 		std::string Error::SetErrorMessage(std::size_t c) {
 			switch (c) {
 			case 1: return "Wrong lexeme input!";
@@ -50,6 +54,7 @@ namespace seal {
 			case 14: return "Invalid variable input!";
 			case 15: return "Invalid arithmetic expression input!";
 			case 16: return "While loops' anf if statements must contain body!";
+			case 17: return "Integer range is from -2.147.483.648 to 2.147.483.647!";
 			}
 		}
 	}

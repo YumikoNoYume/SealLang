@@ -70,7 +70,7 @@ namespace seal {
 			}
 			else {
 				try {
-					const int i = std::stoi(to_token);
+					const int i = std::stoll(to_token);
 					Push("lit", line, t, to_token);
 					CheckIfNewLine(ch, line, t, to_token);
 					CheckIfRBracket(ch, line, t, to_token);
@@ -93,6 +93,7 @@ namespace seal {
 		}
 		
 		void Lexer::ConvertStringToTokens(const std::string& p, std::vector<Token>& t) {
+			em.Clear();
 			std::string to_token;
 			std::size_t line = 1;
 			for (auto ch : p) {

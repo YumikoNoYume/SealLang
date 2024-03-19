@@ -1,6 +1,8 @@
 #include "Parser.h"
 #include "Interpreter.h"
 
+#include <charconv>
+
 namespace seal {
 	namespace impl {
 
@@ -117,6 +119,7 @@ namespace seal {
 		}
 
 		std::unique_ptr<ASTNode> Parser::ParseProgram() {
+			em.Clear();
 			if (tokens.size() == 0 || (tokens.size() == 1 && tokens.back().type == TokenType::new_line)) {
 				return nullptr;
 			}
@@ -354,7 +357,13 @@ namespace seal {
 
 		std::unique_ptr<ASTNode> Parser::ParseLiteral() {
 			current_token_index++;
-			return std::make_unique<Literal>(std::stoi(tokens[current_token_index - 1].lexeme));
+			int value;
+			const auto& curr_lexeme = tokens[current_token_index - 1].lexeme;
+			if (std::from_chars(curr_lexeme.data(), curr_lexeme.data() + curr_lexeme.size(), value).ec == std::errc{})
+				return std::make_unique<Literal>(value);
+			else
+				em.CollectError(Error(tokens[current_token_index].line, 17));
+				return nullptr;
 		}
 
 		std::unique_ptr<ASTNode> Parser::ParseIdentificator() {

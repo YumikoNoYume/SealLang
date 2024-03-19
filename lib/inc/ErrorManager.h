@@ -26,6 +26,7 @@ namespace seal {
 			void DispalyError() const;
 			std::size_t GetErrorListSize() const;
 			std::vector<std::string> GetErrorMessages() const;
+			void Clear();
 		private:
 			std::vector<Error> error_list;
 		};

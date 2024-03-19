@@ -6,7 +6,7 @@ namespace seal {
 	namespace impl {
 		class Interpreter {
 		public:
-			Interpreter(Context cont);
+			Interpreter(Context* cont);
 			std::optional<Value> VisitStatementList(StatementList& sl);
 			std::optional<Value> VisitStatement(Statement& sl);
 			std::optional<Value> VisitWhileLoop(WhileLoop& wl);
@@ -24,7 +24,7 @@ namespace seal {
 			std::optional<Value> VisitLiteral(Literal& l);
 			std::optional<Value> VisitIdentificator(Identificator& i);
 		private:
-			std::vector<Context> context;
+			std::vector<Context*> context;
 			ErrorManager em;
 		};
 	}

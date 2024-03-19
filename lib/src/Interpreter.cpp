@@ -2,19 +2,15 @@
 
 namespace seal {
 	namespace impl {
-		Interpreter::Interpreter(Context cont) {
-			if (!cont.variables.empty()) {
-				context.push_back(cont);
-			}
+		Interpreter::Interpreter(Context* cont) {
+			context.push_back(cont);
 		}
 		
 		std::optional<Value> Interpreter::VisitStatementList(StatementList& sl) {
-			Context con;
-			context.push_back(con);
+			em.Clear();
 			for (auto& node : sl.node_list) {
 				node->Accept(*this);
 			}
-			context.pop_back();
 			if (em.GetErrorListSize() > 0) {
 				throw (Exception(std::move(em.GetErrorMessages())));
 			}
@@ -27,16 +23,22 @@ namespace seal {
 		}
 
 		std::optional<Value> Interpreter::VisitWhileLoop(WhileLoop& wl) {
+			Context con;
+			context.push_back(&con);
 			while (wl.logics->Accept(*this).value().num_value) {
 				wl.body->Accept(*this);
 			}
+			context.pop_back();
 			return std::nullopt;
 		}
 
 		std::optional<Value> Interpreter::VisitIfStatement(IfStatement& is) {
+			Context con;
+			context.push_back(&con);
 			if (is.logics->Accept(*this).value().num_value) {
 				is.body->Accept(*this);
 			}
+			context.pop_back();
 			return std::nullopt;
 		}
 
@@ -48,12 +50,15 @@ namespace seal {
 
 		std::optional<Value> Interpreter::VisitAssignmentStatement(AssignmentStatement& as) {
 			auto val = as.expression->Accept(*this);
+			if (!val) {
+				return std::nullopt;
+			}
 			for (std::size_t index = 0; index < context.size(); index++) {
-				if (context[index].variables.find(as.identificator) != context[index].variables.end()) {
-					context[index].variables.at(as.identificator) = val.value();
+				if (context[index]->variables.find(as.identificator) != context[index]->variables.end()) {
+					context[index]->variables.at(as.identificator) = val.value();
 				}
 				else if (index == context.size() - 1) {
-					context[index].variables.insert({ as.identificator, val.value() });
+					context[index]->variables.insert({ as.identificator, val.value() });
 				}
 			}
 			return std::nullopt;
@@ -63,11 +68,11 @@ namespace seal {
 			Value value{};
 			std::cin >> value.num_value;
 			for (std::size_t index = 0; index < context.size(); index++) {
-				if (context[index].variables.find(rs.variable_name) != context[index].variables.end()) {
-					context[index].variables.at(rs.variable_name) = value;
+				if (context[index]->variables.find(rs.variable_name) != context[index]->variables.end()) {
+					context[index]->variables.at(rs.variable_name) = value;
 				}
 				else if (index == context.size() - 1) {
-					context[index].variables.insert({ rs.variable_name, value });
+					context[index]->variables.insert({ rs.variable_name, value });
 				}
 			}
 			return std::nullopt;
@@ -103,8 +108,18 @@ namespace seal {
 			auto val1 = a.left->Accept(*this);
 			auto val2 = a.right->Accept(*this);
 			switch (a.operation) {
-			case '+': return Value{ val1.value().num_value + val2.value().num_value };
-			case '-': return Value{ val1.value().num_value - val2.value().num_value };
+			case '+': 
+				if (val1.value().num_value + val2.value().num_value >= 2147483647 || val1.value().num_value - val2.value().num_value <= -2147483647) {
+					em.CollectError(Error(0, 17));
+					return std::nullopt;
+				}
+				return Value{ val1.value().num_value + val2.value().num_value };
+			case '-': 
+				if (val1.value().num_value + val2.value().num_value >= 2147483647 || val1.value().num_value - val2.value().num_value <= -2147483647) {
+					em.CollectError(Error(0, 17));
+					return std::nullopt;
+				}
+				return Value{ val1.value().num_value - val2.value().num_value };
 			}
 		}
 
@@ -112,8 +127,18 @@ namespace seal {
 			auto val1 = m.left->Accept(*this);
 			auto val2 = m.right->Accept(*this);
 			switch (m.operation) {
-			case '*': return Value{ val1.value().num_value * val2.value().num_value };
-			case '/': return Value{ val1.value().num_value / val2.value().num_value };
+			case '*': 
+				if (val1.value().num_value + val2.value().num_value >= 2147483647 || val1.value().num_value - val2.value().num_value <= -2147483647) {
+					em.CollectError(Error(0, 17));
+					return std::nullopt;
+				}
+				return Value{ val1.value().num_value * val2.value().num_value };
+			case '/': 
+				if (val1.value().num_value + val2.value().num_value >= 2147483647 || val1.value().num_value - val2.value().num_value <= -2147483647) {
+					em.CollectError(Error(0, 17));
+					return std::nullopt;
+				}
+				return Value{ val1.value().num_value / val2.value().num_value };
 			}
 		}
 
@@ -122,7 +147,12 @@ namespace seal {
 			if (u.operation == '-') {
 				val.value().num_value *= -1;
 			}
-			return Value{ val.value().num_value };
+			if (val) {
+				return Value{ val.value().num_value };
+			}
+			else {
+				return std::nullopt;
+			}
 		}
 
 		std::optional<Value> Interpreter::VisitFactor(Factor& f) {
@@ -140,8 +170,8 @@ namespace seal {
 		std::optional<Value> Interpreter::VisitIdentificator(Identificator& i) {
 			std::string name = i.name;
 			for (std::size_t index = 0; index < context.size(); index++) {
-				if (context[index].variables.find(i.name) != context[index].variables.end()) {
-					return context[index].variables.at(name);
+				if (context[index]->variables.find(i.name) != context[index]->variables.end()) {
+					return context[index]->variables.at(name);
 				}
 				else if (index == context.size() - 1) {
 					em.CollectError(Error(i.line, 11));

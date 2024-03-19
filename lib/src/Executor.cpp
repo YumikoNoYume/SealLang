@@ -2,7 +2,7 @@
 
 namespace seal {
 	
-	Executor::Executor(Context cont) : parser(tokens), interpreter(cont) {}
+	Executor::Executor(Context cont) : parser(tokens), interpreter(&cont) {}
 	
 	void Executor::Execute(const std::string& program) {
 		tokens.clear();
