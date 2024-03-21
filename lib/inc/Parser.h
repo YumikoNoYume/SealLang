@@ -5,8 +5,8 @@
 #include <vector>
 #include <string>
 
-#include "lexer.h"
-#include "context.h"
+#include "Lexer.h"
+#include "Context.h"
 	
 namespace seal {
 	namespace impl {
